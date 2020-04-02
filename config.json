@@ -1,0 +1,8 @@
+{
+  "db": "mongodb://url",
+  "token": {
+    "token_1": "test_client1",
+    "token_2": "test_client2"
+  }
+
+}
