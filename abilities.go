@@ -77,6 +77,5 @@ func newRecord(c *gin.Context){
 		return
 	}
 	c.JSON(http.StatusOK,record.toIDGroup())
-
 	return
 }

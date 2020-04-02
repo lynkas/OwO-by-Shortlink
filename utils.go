@@ -50,11 +50,15 @@ func LoadConfig()  {
 func ConnectDB()  {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
     defer cancel()
-    client, err := mongo.Connect(ctx, options.Client().ApplyURI(
-     Config.Url,
-    ))
+    client, err := mongo.Connect(ctx, options.Client().ApplyURI(Config.Url))
     if err != nil {
     	log.Fatal(err)
+    }
+
+    //test connection
+    err=client.Ping(ctx,nil)
+    if err != nil {
+    	log.Fatal(err,", connect failed, check db link in config.json")
     }
     Client=client
 }
@@ -64,33 +68,12 @@ var COInfo = "info"
 var COdata = "data"
 
 func DBBasicData()  {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	db := Client.Database(DB)
-	names,err := db.ListCollectionNames(ctx,bson.M{})
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	count,err := Client.Database(DB).Collection(COdata).CountDocuments(ctx,bson.M{})
 	if err!=nil {
-		    	log.Fatal(err)
+		log.Fatal(err)
 	}
-
-	ok := false
-	var inf info
-
-	for _,name := range names {
-		if name == COInfo{
-			ok=true
-		}
-	}
-	if !ok {
-		DBSettingInit()
-	}else {
-		collection := Client.Database(DB).Collection(COInfo)
-
-		content := collection.FindOne(ctx,bson.M{})
-		if err:=content.Decode(&inf); err != nil {
-			log.Fatal(err)
-		}
-	}
-
-	UnID = inf.LastID+1
+	UnID = count+1
 	defer cancel()
 }
 
@@ -103,7 +86,6 @@ func DBSettingInit()  {
 	if err!=nil {
 		log.Fatal(err)
 	}
-
 }
 
 func ErrorMessage(c *gin.Context,code int,message interface{})  {
